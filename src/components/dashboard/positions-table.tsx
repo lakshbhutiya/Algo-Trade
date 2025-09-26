@@ -7,13 +7,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { stockData } from "@/lib/market-data";
 
+// Select a few stocks to represent open positions
 const positions = [
-  { symbol: "AAPL", quantity: 100, price: 175.2, value: 17520, pnl: 520.5, type: "Long" },
-  { symbol: "GOOG", quantity: 50, price: 140.1, value: 7005, pnl: -150.2, type: "Long" },
-  { symbol: "TSLA", quantity: 200, price: 250.8, value: 50160, pnl: 2300.0, type: "Short" },
-  { symbol: "AMZN", quantity: 20, price: 130.5, value: 2610, pnl: 80.1, type: "Long" },
-];
+  stockData.find(s => s.symbol === 'RELIANCE'),
+  stockData.find(s => s.symbol === 'TCS'),
+  stockData.find(s => s.symbol === 'INFY'),
+  stockData.find(s => s.symbol === 'HDFCBANK'),
+  stockData.find(s => s.symbol === 'TATAMOTORS'),
+].filter(Boolean).map(stock => ({
+    symbol: stock!.symbol,
+    pnl: (Math.random() - 0.4) * stock!.currentPrice * 0.1, // Random P&L
+    type: Math.random() > 0.5 ? "Long" : "Short",
+}));
+
 
 export function PositionsTable() {
   return (

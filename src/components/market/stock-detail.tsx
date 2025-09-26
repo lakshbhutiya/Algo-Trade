@@ -16,6 +16,7 @@ import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/compone
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StrategySuggestions } from "./strategy-suggestions";
 
 type StockDetailProps = {
   stock: Stock;
@@ -29,8 +30,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const CustomTooltipCursor = (props: any) => {
-  return <div className="bg-muted/30 h-full w-full" />;
+    const { payload, ...rest } = props;
+    return <div {...rest} className="bg-muted/50 h-full w-full" />;
 };
+
 
 export function StockDetail({ stock }: StockDetailProps) {
     const reversedHistoricalData = stock.historicalData ? [...stock.historicalData].reverse() : [];
@@ -78,14 +81,21 @@ export function StockDetail({ stock }: StockDetailProps) {
                       <stop
                         offset="5%"
                         stopColor="hsl(var(--primary))"
-                        stopOpacity={0.8}
+                        stopOpacity={0.4}
                       />
                       <stop
                         offset="95%"
                         stopColor="hsl(var(--primary))"
-                        stopOpacity={0.1}
+                        stopOpacity={0}
                       />
                     </linearGradient>
+                     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                        <feMerge>
+                            <feMergeNode in="coloredBlur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
                   <XAxis 
@@ -125,7 +135,7 @@ export function StockDetail({ stock }: StockDetailProps) {
                     stroke="hsl(var(--primary))"
                     fill="url(#fillClose)"
                     strokeWidth={2}
-                    dot={false}
+                    filter="url(#glow)"
                     activeDot={{
                       r: 6,
                       style: { fill: "hsl(var(--primary))", stroke: "hsl(var(--primary))" },
@@ -137,6 +147,8 @@ export function StockDetail({ stock }: StockDetailProps) {
           </div>
         </CardContent>
       </Card>
+
+      <StrategySuggestions stock={stock} />
       
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
           <Card>
@@ -144,7 +156,7 @@ export function StockDetail({ stock }: StockDetailProps) {
                   <CardTitle className="text-sm font-medium text-muted-foreground">Market Cap</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-xl font-bold">₹{(stock.marketCap / 100).toFixed(2)}T</p>
+                  <p className="text-xl font-bold">₹{(stock.marketCap / 1000000).toFixed(2)}T</p>
               </CardContent>
           </Card>
           <Card>
