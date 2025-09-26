@@ -32,7 +32,7 @@ const StrategySuggestionOutputSchema = z.object({
     .describe('The trading suggestion: Buy, Sell, or Hold.'),
   reasoning: z
     .string()
-    <%- describe("A detailed explanation for the suggestion based on the provided strategy and historical data.") %>
+    .describe("A detailed explanation for the suggestion based on the provided strategy and historical data.")
 });
 export type StrategySuggestionOutput = z.infer<
   typeof StrategySuggestionOutputSchema
