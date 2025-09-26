@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -73,6 +74,11 @@ const strategySuggestionFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error("The AI model did not return a valid suggestion. Please try again.");
+    }
+    return output;
   }
 );
+
+    
