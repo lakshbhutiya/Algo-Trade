@@ -51,8 +51,11 @@ function parseHistoricalData(csv: string): HistoricalDataPoint[] {
   });
 }
 
-function getMeanReversionSuggestion(historicalData: HistoricalDataPoint[]): Omit<SuggestionFormState, 'strategy'> {
+function getMeanReversionSuggestion(data: HistoricalDataPoint[]): Omit<SuggestionFormState, 'strategy'> {
   const period = 20;
+  // Reverse the array to get the most recent data first
+  const historicalData = [...data].reverse();
+
   if (historicalData.length < period) {
     return {
       suggestion: 'Hold',
@@ -60,8 +63,8 @@ function getMeanReversionSuggestion(historicalData: HistoricalDataPoint[]): Omit
     };
   }
 
-  const recentData = historicalData.slice(-period);
-  const currentPrice = recentData[recentData.length - 1].close;
+  const recentData = historicalData.slice(0, period);
+  const currentPrice = recentData[0].close;
   const prices = recentData.map(d => d.close);
   
   const mean = prices.reduce((sum, price) => sum + price, 0) / period;
