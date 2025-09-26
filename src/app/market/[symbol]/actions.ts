@@ -30,8 +30,9 @@ type HistoricalDataPoint = {
 
 function parseHistoricalData(csv: string): HistoricalDataPoint[] {
   const lines = csv.trim().split('\n');
-  const headers = lines.shift()?.split(',');
-  if (!headers) return [];
+  const headerLine = lines.shift();
+  if (!headerLine) return [];
+  const headers = headerLine.split(',');
 
   return lines.map(line => {
     const values = line.split(',');
@@ -39,7 +40,12 @@ function parseHistoricalData(csv: string): HistoricalDataPoint[] {
     headers.forEach((header, index) => {
       const key = header.trim();
       const value = values[index];
-      dataPoint[key] = isNaN(Number(value)) ? value : Number(value);
+      // Ensure that we parse numbers correctly, defaulting to 0 if not a number.
+      if (key !== 'date') {
+        dataPoint[key] = Number(value) || 0;
+      } else {
+        dataPoint[key] = value;
+      }
     });
     return dataPoint as HistoricalDataPoint;
   });
