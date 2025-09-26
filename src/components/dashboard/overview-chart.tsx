@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -38,6 +39,10 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const CustomTooltipCursor = (props: any) => {
+  return <div className="bg-muted/30 h-full w-full" />;
+};
+
 export function OverviewChart() {
   return (
     <div className="h-[300px]">
@@ -74,7 +79,7 @@ export function OverviewChart() {
               tickFormatter={(value) => `$${value / 1000}k`}
             />
             <Tooltip
-              cursor={<div className="bg-muted/30 h-full w-full" />}
+              cursor={<CustomTooltipCursor />}
               content={<ChartTooltipContent
                 indicator="line"
                 labelFormatter={(label, payload) => {

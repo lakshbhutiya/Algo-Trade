@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Stock } from "@/lib/market-data";
@@ -27,6 +28,10 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const CustomTooltipCursor = (props: any) => {
+  return <div className="bg-muted/30 h-full w-full" />;
+};
+
 export function StockDetail({ stock }: StockDetailProps) {
     const reversedHistoricalData = stock.historicalData ? [...stock.historicalData].reverse() : [];
     
@@ -44,7 +49,7 @@ export function StockDetail({ stock }: StockDetailProps) {
         </div>
         <div className="text-right">
             <p className="text-4xl font-bold">₹{stock.currentPrice.toFixed(2)}</p>
-            <div className={cn("flex items-center justify-end text-lg", isPositiveChange ? "text-green-500" : "text-red-500")}>
+            <div className={cn("flex items-center justify-end text-lg", isPositiveChange ? "text-[hsl(var(--chart-2))]" : "text-[hsl(var(--destructive))]")}>
                 {isPositiveChange ? <ArrowUp className="h-5 w-5"/> : <ArrowDown className="h-5 w-5"/>}
                 <span className="font-semibold ml-1">{stock.dayChange?.value.toFixed(2)} ({stock.dayChange?.percentage.toFixed(2)}%)</span>
             </div>
@@ -100,7 +105,7 @@ export function StockDetail({ stock }: StockDetailProps) {
                     axisLine={{stroke: 'hsl(var(--border))'}}
                     />
                   <Tooltip
-                    cursor={<div className="bg-muted/30 h-full w-full" />}
+                    cursor={<CustomTooltipCursor />}
                     content={<ChartTooltipContent
                         indicator="dot"
                         labelFormatter={(value, payload) => {
