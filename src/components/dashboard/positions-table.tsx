@@ -1,3 +1,7 @@
+
+"use client"
+
+import * as React from 'react';
 import {
   Table,
   TableBody,
@@ -9,21 +13,40 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { stockData } from "@/lib/market-data";
 
+type Position = {
+  symbol: string;
+  pnl: number;
+  type: "Long" | "Short";
+};
+
 // Select a few stocks to represent open positions
-const positions = [
+const initialPositions = [
   stockData.find(s => s.symbol === 'RELIANCE'),
   stockData.find(s => s.symbol === 'TCS'),
   stockData.find(s => s.symbol === 'INFY'),
   stockData.find(s => s.symbol === 'HDFCBANK'),
   stockData.find(s => s.symbol === 'TATAMOTORS'),
-].filter(Boolean).map(stock => ({
-    symbol: stock!.symbol,
-    pnl: (Math.random() - 0.4) * stock!.currentPrice * 0.1, // Random P&L
-    type: Math.random() > 0.5 ? "Long" : "Short",
-}));
+].filter((stock): stock is NonNullable<typeof stock> => !!stock);
 
 
 export function PositionsTable() {
+  const [positions, setPositions] = React.useState<Position[]>([]);
+
+  React.useEffect(() => {
+    // Generate random data on the client-side to avoid hydration mismatch
+    const generatedPositions = initialPositions.map(stock => ({
+        symbol: stock.symbol,
+        pnl: (Math.random() - 0.4) * stock.currentPrice * 0.1, // Random P&L
+        type: Math.random() > 0.5 ? "Long" : "Short",
+    }));
+    setPositions(generatedPositions);
+  }, []);
+
+
+  if (positions.length === 0) {
+    return <div className="text-center text-muted-foreground p-4">Loading positions...</div>;
+  }
+
   return (
     <div className="w-full overflow-auto">
       <Table>
@@ -48,7 +71,7 @@ export function PositionsTable() {
                   pos.pnl >= 0 ? "text-[hsl(var(--chart-2))]" : "text-destructive"
                 }`}
               >
-                {pos.pnl >= 0 ? "+" : ""}${pos.pnl.toFixed(2)}
+                {pos.pnl >= 0 ? "+" : ""}{pos.pnl.toFixed(2)}
               </TableCell>
             </TableRow>
           ))}
