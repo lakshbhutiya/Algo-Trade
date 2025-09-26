@@ -18,18 +18,18 @@ import {
 
 
 const data = [
-  { date: "Jan", value: 4000 },
-  { date: "Feb", value: 3000 },
-  { date: "Mar", value: 5000 },
-  { date: "Apr", value: 4500 },
-  { date: "May", value: 6000 },
-  { date: "Jun", value: 5500 },
-  { date: "Jul", value: 7000 },
-  { date: "Aug", value: 6500 },
-  { date: "Sep", value: 7200 },
-  { date: "Oct", value: 8000 },
-  { date: "Nov", value: 7800 },
-  { date: "Dec", value: 9000 },
+  { date: "Jan", value: 400000 },
+  { date: "Feb", value: 300000 },
+  { date: "Mar", value: 500000 },
+  { date: "Apr", value: 450000 },
+  { date: "May", value: 600000 },
+  { date: "Jun", value: 550000 },
+  { date: "Jul", value: 700000 },
+  { date: "Aug", value: 650000 },
+  { date: "Sep", value: 720000 },
+  { date: "Oct", value: 800000 },
+  { date: "Nov", value: 780000 },
+  { date: "Dec", value: 900000 },
 ];
 
 const chartConfig = {
@@ -40,8 +40,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const CustomTooltipCursor = (props: any) => {
-  return <div className="bg-muted/30 h-full w-full" />;
+  const { payload, ...rest } = props;
+  return <div {...rest} className="bg-muted/30 h-full w-full" />;
 };
+
 
 export function OverviewChart() {
   return (
@@ -76,7 +78,7 @@ export function OverviewChart() {
               fontSize={12}
               tickLine={false}
               axisLine={{stroke: 'hsl(var(--border))'}}
-              tickFormatter={(value) => `$${value / 1000}k`}
+              tickFormatter={(value) => `₹${Number(value) / 100000}L`}
             />
             <Tooltip
               cursor={<CustomTooltipCursor />}
@@ -85,6 +87,7 @@ export function OverviewChart() {
                 labelFormatter={(label, payload) => {
                     return payload?.[0]?.payload.date
                 }}
+                 formatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(value))}
               />}
               wrapperClassName="bg-background/80 backdrop-blur-sm rounded-lg border border-border"
             />

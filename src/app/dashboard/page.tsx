@@ -1,3 +1,4 @@
+
 import { DollarSign, Percent, TrendingUp, TrendingDown } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { OverviewChart } from "@/components/dashboard/overview-chart";
@@ -10,7 +11,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total P&L"
-          value="$45,231.89"
+          value="₹37,50,231"
           change="+20.1% from last month"
           icon={DollarSign}
         />

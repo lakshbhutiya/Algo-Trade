@@ -36,7 +36,7 @@ export function PositionsTable() {
     // Generate random data on the client-side to avoid hydration mismatch
     const generatedPositions = initialPositions.map(stock => ({
         symbol: stock.symbol,
-        pnl: (Math.random() - 0.4) * stock.currentPrice * 0.1, // Random P&L
+        pnl: (Math.random() - 0.4) * stock.currentPrice * 0.1 * 100, // Random P&L in Rupees
         type: Math.random() > 0.5 ? "Long" : "Short",
     }));
     setPositions(generatedPositions);
@@ -54,7 +54,7 @@ export function PositionsTable() {
           <TableRow>
             <TableHead>Symbol</TableHead>
             <TableHead>Type</TableHead>
-            <TableHead className="text-right">P/L</TableHead>
+            <TableHead className="text-right">P/L (₹)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -71,7 +71,7 @@ export function PositionsTable() {
                   pos.pnl >= 0 ? "text-[hsl(var(--chart-2))]" : "text-destructive"
                 }`}
               >
-                {pos.pnl >= 0 ? "+" : ""}{pos.pnl.toFixed(2)}
+                {pos.pnl >= 0 ? "+" : ""}₹{pos.pnl.toFixed(2)}
               </TableCell>
             </TableRow>
           ))}
