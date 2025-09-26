@@ -10,7 +10,9 @@ import {
   CartesianGrid,
 } from "recharts";
 import {
+  ChartContainer,
   ChartTooltipContent,
+  type ChartConfig,
 } from "@/components/ui/chart";
 
 
@@ -29,44 +31,53 @@ const data = [
   { date: "Dec", value: 9000 },
 ];
 
+const chartConfig = {
+  value: {
+    label: "Value",
+    color: "hsl(var(--primary))",
+  },
+} satisfies ChartConfig;
+
 export function OverviewChart() {
   return (
     <div className="h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="date"
-            stroke="hsl(var(--muted-foreground))"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            stroke="hsl(var(--muted-foreground))"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(value) => `$${value / 1000}k`}
-          />
-          <Tooltip
-            cursor={{ stroke: "hsl(var(--accent))", strokeWidth: 2, strokeDasharray: "3 3" }}
-            content={<ChartTooltipContent />}
-            wrapperClassName="bg-background/80 backdrop-blur-sm rounded-lg border border-border"
-          />
-          <Line
-            type="monotone"
-            dataKey="value"
-            stroke="hsl(var(--primary))"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{
-                r: 6,
-                style: { fill: "hsl(var(--primary))", opacity: 0.25 },
-            }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <ChartContainer config={chartConfig} className="w-full h-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="date"
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `$${value / 1000}k`}
+            />
+            <Tooltip
+              cursor={{ stroke: "hsl(var(--accent))", strokeWidth: 2, strokeDasharray: "3 3" }}
+              content={<ChartTooltipContent />}
+              wrapperClassName="bg-background/80 backdrop-blur-sm rounded-lg border border-border"
+            />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{
+                  r: 6,
+                  style: { fill: "hsl(var(--primary))", opacity: 0.25 },
+              }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartContainer>
     </div>
   );
 }
