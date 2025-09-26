@@ -30,8 +30,9 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const CustomTooltipCursor = (props: any) => {
-    const { payload, ...rest } = props;
-    return <div {...rest} className="bg-muted/50 h-full w-full" />;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { payload, payloadIndex, brushBottom, x, y, width, height, ...rest } = props;
+    return <div className="bg-muted/50 h-full w-full" />;
 };
 
 
