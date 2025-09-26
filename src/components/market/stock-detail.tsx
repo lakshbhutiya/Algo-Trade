@@ -3,8 +3,8 @@
 import type { Stock } from "@/lib/market-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -59,44 +59,74 @@ export function StockDetail({ stock }: StockDetailProps) {
           <div className="h-[400px]">
             <ChartContainer config={chartConfig} className="w-full h-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
+                <AreaChart
                   data={reversedHistoricalData}
                   margin={{
                     top: 5,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
+                    right: 10,
+                    left: -10,
+                    bottom: 0,
                   }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <defs>
+                    <linearGradient id="fillClose" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="hsl(var(--primary))"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="hsl(var(--primary))"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
                   <XAxis 
                     dataKey="date" 
-                    tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                    tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { year: '2-digit', month: 'short' })}
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickLine={false}
-                    axisLine={false}
+                    axisLine={{stroke: 'hsl(var(--border))'}}
                     />
                   <YAxis 
-                    domain={['dataMin', 'dataMax']}
-                    tickFormatter={(value) => `₹${value}`}
+                    domain={['dataMin - (dataMax-dataMin)*0.1', 'dataMax + (dataMax-dataMin)*0.1']}
+                    tickFormatter={(value) => `₹${Number(value).toFixed(0)}`}
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickLine={false}
-                    axisLine={false}
+                    axisLine={{stroke: 'hsl(var(--border))'}}
                     />
                   <Tooltip
-                    content={<ChartTooltipContent />}
+                    cursor={<div className="bg-muted/30 h-full w-full" />}
+                    content={<ChartTooltipContent
+                        indicator="dot"
+                        labelFormatter={(value, payload) => {
+                            return new Date(payload?.[0]?.payload.date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })
+                        }}
+                        formatter={(value, name) => [`₹${Number(value).toFixed(2)}`, 'Close']}
+                    />}
                     wrapperClassName="bg-background/80 backdrop-blur-sm rounded-lg border border-border"
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="close"
                     stroke="hsl(var(--primary))"
+                    fill="url(#fillClose)"
                     strokeWidth={2}
                     dot={false}
+                    activeDot={{
+                      r: 6,
+                      style: { fill: "hsl(var(--primary))", stroke: "hsl(var(--primary))" },
+                    }}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </ChartContainer>
           </div>
@@ -142,6 +172,14 @@ export function StockDetail({ stock }: StockDetailProps) {
               </CardHeader>
               <CardContent>
                   <p className="text-xl font-bold">₹{stock["52WeekLow"].toFixed(2)}</p>
+              </CardContent>
+          </Card>
+          <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Volume</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold">{((stock.historicalData?.[0].volume ?? 0) / 1_000_000).toFixed(2)}M</p>
               </CardContent>
           </Card>
       </div>

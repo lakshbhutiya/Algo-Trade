@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -43,31 +43,51 @@ export function OverviewChart() {
     <div className="h-[300px]">
       <ChartContainer config={chartConfig} className="w-full h-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+          <AreaChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+            <defs>
+              <linearGradient id="fillValue" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-value)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-value)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
             <XAxis
               dataKey="date"
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
-              axisLine={false}
+              axisLine={{stroke: 'hsl(var(--border))'}}
             />
             <YAxis
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
-              axisLine={false}
+              axisLine={{stroke: 'hsl(var(--border))'}}
               tickFormatter={(value) => `$${value / 1000}k`}
             />
             <Tooltip
-              cursor={{ stroke: "hsl(var(--accent))", strokeWidth: 2, strokeDasharray: "3 3" }}
-              content={<ChartTooltipContent />}
+              cursor={<div className="bg-muted/30 h-full w-full" />}
+              content={<ChartTooltipContent
+                indicator="line"
+                labelFormatter={(label, payload) => {
+                    return payload?.[0]?.payload.date
+                }}
+              />}
               wrapperClassName="bg-background/80 backdrop-blur-sm rounded-lg border border-border"
             />
-            <Line
-              type="monotone"
+            <Area
               dataKey="value"
-              stroke="hsl(var(--primary))"
+              type="monotone"
+              fill="url(#fillValue)"
+              stroke="var(--color-value)"
               strokeWidth={2}
               dot={false}
               activeDot={{
@@ -75,7 +95,7 @@ export function OverviewChart() {
                   style: { fill: "hsl(var(--primary))", opacity: 0.25 },
               }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
     </div>
