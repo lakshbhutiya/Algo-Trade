@@ -17,87 +17,6 @@ const formSchema = z.object({
   stockSymbol: z.string().min(1, "Stock symbol is required."),
 });
 
-// --- Formula-based Strategy Implementations ---
-
-type HistoricalDataPoint = {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-};
-
-function parseHistoricalData(csv: string): HistoricalDataPoint[] {
-  const lines = csv.trim().split('\n');
-  const headerLine = lines.shift();
-  if (!headerLine) return [];
-  const headers = headerLine.split(',');
-
-  return lines.map(line => {
-    const values = line.split(',');
-    const dataPoint: any = {};
-    headers.forEach((header, index) => {
-      const key = header.trim();
-      const value = values[index];
-      // Ensure that we parse numbers correctly, defaulting to 0 if not a number.
-      if (key !== 'date') {
-        dataPoint[key] = Number(value) || 0;
-      } else {
-        dataPoint[key] = value;
-      }
-    });
-    return dataPoint as HistoricalDataPoint;
-  });
-}
-
-function getMeanReversionSuggestion(data: HistoricalDataPoint[]): Omit<SuggestionFormState, 'strategy'> {
-  const period = 20;
-  // Reverse the array to get the most recent data first
-  const historicalData = [...data].reverse();
-
-  if (historicalData.length < period) {
-    return {
-      suggestion: 'Hold',
-      reasoning: `Not enough historical data to apply Mean Reversion strategy (requires at least ${period} days).`,
-    };
-  }
-
-  const recentData = historicalData.slice(0, period);
-  const currentPrice = recentData[0].close;
-  const prices = recentData.map(d => d.close);
-  
-  const mean = prices.reduce((sum, price) => sum + price, 0) / period;
-  const stdDev = Math.sqrt(prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / period);
-
-  const upperBand = mean + 2 * stdDev;
-  const lowerBand = mean - 2 * stdDev;
-
-  if (currentPrice > upperBand) {
-    return {
-      suggestion: 'Sell',
-      reasoning: `The current price (₹${currentPrice.toFixed(2)}) is significantly above the recent average (₹${mean.toFixed(2)}), suggesting it's overvalued and likely to revert downwards. The price is above the upper Bollinger Band (₹${upperBand.toFixed(2)}).`,
-    };
-  } else if (currentPrice < lowerBand) {
-    return {
-      suggestion: 'Buy',
-      reasoning: `The current price (₹${currentPrice.toFixed(2)}) is significantly below the recent average (₹${mean.toFixed(2)}), suggesting it's undervalued and likely to revert upwards. The price is below the lower Bollinger Band (₹${lowerBand.toFixed(2)}).`,
-    };
-  } else {
-    return {
-      suggestion: 'Hold',
-      reasoning: `The current price (₹${currentPrice.toFixed(2)}) is within its normal range around the recent average (₹${mean.toFixed(2)}). There is no strong signal for a price reversion at this moment.`,
-    };
-  }
-}
-
-function getArbitrageSuggestion(): Omit<SuggestionFormState, 'strategy'> {
-  return {
-    suggestion: 'Hold',
-    reasoning: 'Arbitrage involves exploiting price differences for the same asset across different markets. This strategy is not applicable when analyzing a single stock\'s historical data from one market.',
-  };
-}
-
 
 export async function runGetSuggestion(
   prevState: SuggestionFormState,
@@ -119,21 +38,11 @@ export async function runGetSuggestion(
   const { strategy, historicalData: historicalDataCSV, stockSymbol } = validatedFields.data;
 
   try {
-    let result: Omit<SuggestionFormState, 'strategy'>;
-
-    if (strategy === "Mean Reversion") {
-      const historicalData = parseHistoricalData(historicalDataCSV);
-      result = getMeanReversionSuggestion(historicalData);
-    } else if (strategy === "Arbitrage") {
-      result = getArbitrageSuggestion();
-    } else {
-      // For other strategies, use the AI flow
-      result = await getStrategySuggestion({
-          strategy,
-          historicalData: historicalDataCSV,
-          stockSymbol
-      });
-    }
+    const result = await getStrategySuggestion({
+        strategy,
+        historicalData: historicalDataCSV,
+        stockSymbol
+    });
     
     return { ...result, strategy };
   } catch (e: any) {
