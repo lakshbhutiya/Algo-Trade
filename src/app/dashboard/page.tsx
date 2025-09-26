@@ -2,7 +2,6 @@ import { DollarSign, Percent, TrendingUp, TrendingDown } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { PositionsTable } from "@/components/dashboard/positions-table";
-import { TradesHistory } from "@/components/dashboard/trades-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
@@ -52,14 +51,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Trade History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TradesHistory />
-        </CardContent>
-      </Card>
     </div>
   );
 }
