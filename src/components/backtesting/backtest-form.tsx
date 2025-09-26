@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { runBacktest, type FormState } from "@/app/backtesting/actions";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -47,7 +48,7 @@ function LoadingState({children}: {children: React.ReactNode}) {
 }
 
 export function BacktestForm() {
-  const [state, formAction] = useFormState(runBacktest, initialState);
+  const [state, formAction] = useActionState(runBacktest, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
