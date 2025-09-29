@@ -1,29 +1,21 @@
+
 "use server";
 
 import { z } from "zod";
 import { backtestStrategy } from "@/ai/flows/strategy-backtesting";
-
-export interface FormState {
-  message: string;
-  data?: {
-    optimizedParameters: string;
-    backtestingResults: string;
-    suggestedImprovements: string;
-  };
-  error?: boolean;
-}
-
-const formSchema = z.object({
-  strategy: z.string().min(1, "Strategy is required."),
-  historicalData: z.string().min(1, "Historical data is required."),
-  parameters: z.string().min(1, "Parameters are required."),
-  optimizationObjective: z.string().min(1, "Optimization objective is required."),
-});
+import type { BacktestFormState } from "@/lib/definitions";
 
 export async function runBacktest(
-  prevState: FormState,
+  prevState: BacktestFormState,
   formData: FormData
-): Promise<FormState> {
+): Promise<BacktestFormState> {
+  const formSchema = z.object({
+    strategy: z.string().min(1, "Strategy is required."),
+    historicalData: z.string().min(1, "Historical data is required."),
+    parameters: z.string().min(1, "Parameters are required."),
+    optimizationObjective: z.string().min(1, "Optimization objective is required."),
+  });
+
   const validatedFields = formSchema.safeParse({
     strategy: formData.get("strategy"),
     historicalData: formData.get("historicalData"),

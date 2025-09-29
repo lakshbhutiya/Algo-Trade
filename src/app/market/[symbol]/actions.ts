@@ -3,26 +3,18 @@
 
 import { z } from "zod";
 import { getStrategySuggestion } from "@/ai/flows/get-strategy-suggestion";
-
-export interface SuggestionFormState {
-  suggestion?: 'Buy' | 'Sell' | 'Hold';
-  reasoning?: string;
-  error?: string;
-  strategy?: string;
-}
-
-const formSchema = z.object({
-  strategy: z.string().min(1, "Strategy is required."),
-  historicalData: z.string().min(1, "Historical data is required."),
-  stockSymbol: z.string().min(1, "Stock symbol is required."),
-});
-
+import type { SuggestionFormState } from "@/lib/definitions";
 
 export async function runGetSuggestion(
   prevState: SuggestionFormState,
   formData: FormData
 ): Promise<SuggestionFormState> {
-  
+  const formSchema = z.object({
+    strategy: z.string().min(1, "Strategy is required."),
+    historicalData: z.string().min(1, "Historical data is required."),
+    stockSymbol: z.string().min(1, "Stock symbol is required."),
+  });
+
   const validatedFields = formSchema.safeParse({
     strategy: formData.get("strategy"),
     historicalData: formData.get("historicalData"),

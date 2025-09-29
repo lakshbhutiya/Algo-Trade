@@ -1,58 +1,14 @@
+
 'use server';
 
 /**
  * @fileOverview A strategy backtesting AI agent.
  *
  * - backtestStrategy - A function that handles the strategy backtesting process.
- * - BacktestStrategyInput - The input type for the backtestStrategy function.
- * - BacktestStrategyOutput - The return type for the backtestStrategy function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const BacktestStrategyInputSchema = z.object({
-  strategy: z
-    .string()
-    .describe(
-      'The trading strategy to backtest (Trend Following, Arbitrage, Mean Reversion, or Market Timing).'
-    ),
-  historicalData: z
-    .string()
-    .describe(
-      'Historical market data as a string, including dates, open, high, low, close, and volume data. Expected format: CSV.'
-    ),
-  parameters: z
-    .string()
-    .describe(
-      'Parameters to optimize for the given strategy. These should be specified in a way the AI can understand and adjust, for example, as a JSON string.'
-    ),
-  optimizationObjective: z
-    .string()
-    .describe(
-      'The objective to optimize for, such as maximizing profit, minimizing risk, or Sharpe ratio.'
-    ),
-});
-export type BacktestStrategyInput = z.infer<typeof BacktestStrategyInputSchema>;
-
-const BacktestStrategyOutputSchema = z.object({
-  optimizedParameters: z
-    .string()
-    .describe(
-      'The optimized parameters for the given strategy and historical data, as a JSON string.'
-    ),
-  backtestingResults: z
-    .string()
-    .describe(
-      'The results of the backtesting, including key metrics such as profit, loss, Sharpe ratio, and maximum drawdown.'
-    ),
-  suggestedImprovements: z
-    .string()
-    .describe(
-      'Suggested improvements to the strategy based on the backtesting results.'
-    ),
-});
-export type BacktestStrategyOutput = z.infer<typeof BacktestStrategyOutputSchema>;
+import { BacktestStrategyInput, BacktestStrategyOutput, BacktestStrategyInputSchema, BacktestStrategyOutputSchema } from '@/lib/definitions';
 
 export async function backtestStrategy(input: BacktestStrategyInput): Promise<BacktestStrategyOutput> {
   return backtestStrategyFlow(input);

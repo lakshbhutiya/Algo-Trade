@@ -1,9 +1,10 @@
+
 import { Lightbulb, Settings, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { FormState } from "@/app/backtesting/actions";
+import type { BacktestFormState } from "@/lib/definitions";
 
 type BacktestResultsProps = {
-  results: NonNullable<FormState['data']>;
+  results: NonNullable<BacktestFormState['data']>;
 };
 
 export function BacktestResults({ results }: BacktestResultsProps) {

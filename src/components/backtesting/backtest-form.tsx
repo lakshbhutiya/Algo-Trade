@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { runBacktest, type FormState } from "@/app/backtesting/actions";
+import { runBacktest } from "@/app/backtesting/actions";
+import type { BacktestFormState } from "@/lib/definitions";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -19,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { BacktestResults } from "./backtest-results";
 
-const initialState: FormState = {
+const initialState: BacktestFormState = {
   message: "",
 };
 

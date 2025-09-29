@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { runGetSuggestion, type SuggestionFormState } from "@/app/market/[symbol]/actions";
+import { runGetSuggestion } from "@/app/market/[symbol]/actions";
+import type { SuggestionFormState } from "@/lib/definitions";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import {
   Select,
