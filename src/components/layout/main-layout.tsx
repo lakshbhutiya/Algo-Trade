@@ -3,13 +3,25 @@ import { SidebarNav } from "./sidebar-nav";
 import { Header } from "./header";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAuth } from "firebase-admin/auth";
+import { adminApp } from "@/lib/firebase/server-config";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const session = cookies().get("session")?.value;
 
   if (!session) {
       redirect('/login');
   }
+
+  // Double check auth on the server for protected layouts
+  try {
+    if (!adminApp) throw new Error("Firebase admin app not initialized");
+    const auth = getAuth(adminApp);
+    await auth.verifySessionCookie(session, true);
+  } catch(e) {
+    redirect('/login');
+  }
+
 
   return (
     <SidebarProvider>
