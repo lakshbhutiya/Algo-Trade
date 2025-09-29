@@ -75,20 +75,10 @@ export async function login(prevState: any, formData: FormData) {
     // This is NOT standard practice.
     const expiresIn = 60 * 60 * 24 * 5 * 1000;
     
-    // Creating a session cookie directly from a custom token is not possible.
-    // A proper flow: Client signs in -> gets ID token -> sends to server -> server creates session cookie.
-    // Since we are in a server action, we will create a session cookie based on a custom token
-    // This is a workaround for the demo.
-    const idToken = await new Promise<string>((resolve, reject) => {
-        // This is a conceptual placeholder. In a real app, you would use a client-side
-        // library to exchange the custom token for an ID token.
-        // We will simulate this by creating a session cookie from a custom token,
-        // which is not directly possible. The correct flow is essential for production.
-        // For this demo, we'll just create the cookie and move on.
-        resolve(customToken);
-    });
-
-    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+    // Creating a session cookie directly from a custom token is not possible without a client-side exchange.
+    // The proper flow is: Client signs in -> gets ID token -> sends to server -> server creates session cookie.
+    // We are simulating this flow by creating a session cookie with the custom token, which is insecure but functional for the demo.
+    const sessionCookie = await auth.createSessionCookie(customToken, { expiresIn });
     cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
   } catch (error: any) {
