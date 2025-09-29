@@ -22,20 +22,10 @@ const firebaseAuthNotSetup = {
     error: true,
 };
 
-// Helper function to create a session cookie. The client-side will need to provide an ID token.
-// NOTE: For this application, we are handling auth fully on the server, so this is not used.
-// Kept for reference if client-side auth is introduced.
-// export async function createSession(idToken: string) {
-//     const adminApp = getAdminApp();
-//     if (!adminApp) return;
-
-//     const auth = getAuth(adminApp);
-//     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-//     const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
-//     cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-// }
-
-
+// NOTE: This login function is for demonstration purposes only and is NOT SECURE.
+// The Firebase Admin SDK (server-side) cannot verify passwords directly.
+// In a production app, you should use the client-side SDK to sign the user in,
+// get an ID token, and send that token to the server to create a session cookie.
 export async function login(prevState: any, formData: FormData) {
   const adminApp = getAdminApp();
   if (!adminApp) {
@@ -53,32 +43,23 @@ export async function login(prevState: any, formData: FormData) {
     };
   }
 
-  // NOTE: The Firebase Admin SDK does not have a method to sign in with email and password.
-  // This is a placeholder for a custom authentication flow.
-  // In a real-world scenario, you'd use the client-side SDK to sign in, get an ID token,
-  // and send it to the server to create a session cookie.
-  // For this demo, we will check if the user exists and create a session.
-  // THIS IS NOT SECURE FOR PRODUCTION as it doesn't verify the password.
-
   const { email } = validatedFields.data;
+  const auth = getAuth(adminApp);
 
   try {
-    const auth = getAuth(adminApp);
+    // 1. Get the user by email. This doesn't verify the password.
     const user = await auth.getUserByEmail(email);
 
-    // This is the insecure part. We are not verifying the password.
-    // In a real app, the client would send an ID token after password verification.
+    // 2. Create a session cookie.
+    // In this insecure demo, we're creating a session for any existing user.
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+    // We create a custom token and then immediately create a session cookie from it.
+    // THIS IS A WORKAROUND because we can't create a session cookie directly from a UID.
+    // The proper flow requires an ID token from the client.
     const customToken = await auth.createCustomToken(user.uid);
-    
-    // On the client, you would exchange this custom token for an ID token.
-    // For this server-action only flow, we'll use a trick to create a session.
-    // This is NOT standard practice.
-    const expiresIn = 60 * 60 * 24 * 5 * 1000;
-    
-    // Creating a session cookie directly from a custom token is not possible without a client-side exchange.
-    // The proper flow is: Client signs in -> gets ID token -> sends to server -> server creates session cookie.
-    // We are simulating this flow by creating a session cookie with the custom token, which is insecure but functional for the demo.
+    // This is an undocumented way to simulate the client-side token exchange for demo purposes.
     const sessionCookie = await auth.createSessionCookie(customToken, { expiresIn });
+    
     cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
   } catch (error: any) {
@@ -116,31 +97,22 @@ export async function signup(prevState: any, formData: FormData) {
     }
 
     const { email, password } = validatedFields.data;
+    const auth = getAuth(adminApp);
 
     try {
-        const auth = getAuth(adminApp);
-        
-        // Create the user in Firebase Auth
+        // 1. Create the user in Firebase Auth
         const userRecord = await auth.createUser({
             email,
             password,
         });
 
-        // Create a custom token for the new user
-        const customToken = await auth.createCustomToken(userRecord.uid);
-        
-        // The correct flow is:
-        // 1. Client receives custom token.
-        // 2. Client uses Firebase client SDK's `signInWithCustomToken` to get an ID token.
-        // 3. Client sends ID token to a server endpoint.
-        // 4. Server verifies ID token and creates a session cookie.
-
-        // As we are in a server-only action, we are using a workaround.
-        // This is NOT standard practice and is for demonstration purposes.
+        // 2. Create a session cookie for the new user
         const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+        // This is a workaround for server actions. A proper flow involves the client SDK.
+        const customToken = await auth.createCustomToken(userRecord.uid);
         const sessionCookie = await auth.createSessionCookie(customToken, { expiresIn });
 
-        // Set the session cookie in the browser
+        // 3. Set the session cookie in the browser
         cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
     } catch (error: any) {
@@ -149,8 +121,9 @@ export async function signup(prevState: any, formData: FormData) {
             message = "An account with this email already exists.";
         } else if (error.code === 'auth/invalid-password') {
             message = "Password must be at least 6 characters long.";
+        } else {
+           console.error("Signup Error:", error);
         }
-        console.error("Signup Error:", error);
         return {
             message: message,
             error: true,
