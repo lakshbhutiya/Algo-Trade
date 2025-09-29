@@ -68,6 +68,8 @@ export async function login(prevState: any, formData: FormData) {
     cookies().set('session', sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      maxAge: expiresIn,
+      path: '/',
     });
   } catch (error: any) {
     let message = 'Failed to log in.';
@@ -123,6 +125,8 @@ export async function signup(prevState: any, formData: FormData) {
     cookies().set('session', sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      maxAge: expiresIn,
+      path: '/',
     });
   } catch (error: any) {
     let message = 'An unknown error occurred during sign up.';
