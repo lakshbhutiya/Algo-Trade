@@ -1,10 +1,11 @@
+
 "use server";
 
 import { z } from "zod";
 import { getAuth } from "firebase-admin/auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { adminApp } from "@/lib/firebase/server-config";
+import { getAdminApp } from "@/lib/firebase/server-config";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -16,7 +17,17 @@ const signupSchema = z.object({
   password: z.string().min(6),
 });
 
+const firebaseAuthNotSetup = {
+    message: "Firebase authentication is not configured correctly. Please check your server environment variables.",
+    error: true,
+};
+
 export async function login(prevState: any, formData: FormData) {
+  const adminApp = getAdminApp();
+  if (!adminApp) {
+      return firebaseAuthNotSetup;
+  }
+
   const validatedFields = loginSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -37,12 +48,21 @@ export async function login(prevState: any, formData: FormData) {
     const user = await auth.getUserByEmail(email);
 
     // Create session cookie
-    const sessionCookie = await auth.createSessionCookie(user.uid, { expiresIn: 60 * 60 * 24 * 5 * 1000 });
-    cookies().set("session", sessionCookie, { httpOnly: true, secure: true });
+    const idToken = await auth.createCustomToken(user.uid);
+    // The client will exchange this for a session cookie
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+
+
+    cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
   } catch (error: any) {
+    let message = "Failed to log in.";
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        message = "Invalid email or password.";
+    }
     return {
-      message: error.message || "Failed to log in.",
+      message: message,
       error: true,
     };
   }
@@ -52,6 +72,11 @@ export async function login(prevState: any, formData: FormData) {
 
 
 export async function signup(prevState: any, formData: FormData) {
+    const adminApp = getAdminApp();
+    if (!adminApp) {
+        return firebaseAuthNotSetup;
+    }
+
     const validatedFields = signupSchema.safeParse(
         Object.fromEntries(formData.entries())
     );
@@ -72,13 +97,19 @@ export async function signup(prevState: any, formData: FormData) {
             password,
         });
 
-        // Create session cookie
-        const sessionCookie = await auth.createSessionCookie(userRecord.uid, { expiresIn: 60 * 60 * 24 * 5 * 1000 });
-        cookies().set("session", sessionCookie, { httpOnly: true, secure: true });
+        const idToken = await auth.createCustomToken(userRecord.uid);
+        const expiresIn = 60 * 60 * 24 * 5 * 1000;
+        const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+
+        cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
     } catch (error: any) {
+        let message = "Failed to sign up.";
+        if (error.code === 'auth/email-already-exists') {
+            message = "An account with this email already exists.";
+        }
         return {
-        message: error.message || "Failed to sign up.",
+        message: message,
         error: true,
         };
     }

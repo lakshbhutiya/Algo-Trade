@@ -3,8 +3,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import MainLayout from '@/components/layout/main-layout';
 import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
-import { adminApp } from '@/lib/firebase/server-config';
 
 export const metadata: Metadata = {
   title: 'AlgoTrade AI',
@@ -13,15 +11,7 @@ export const metadata: Metadata = {
 
 async function checkAuth() {
     const sessionCookie = cookies().get('session')?.value;
-    if (!sessionCookie) return false;
-    try {
-        if (!adminApp) return false;
-        const auth = getAuth(adminApp);
-        await auth.verifySessionCookie(sessionCookie, true);
-        return true;
-    } catch (error) {
-        return false;
-    }
+    return !!sessionCookie;
 }
 
 
