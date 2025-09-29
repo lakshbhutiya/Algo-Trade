@@ -1,27 +1,28 @@
 
-
 import { getApp, getApps, initializeApp } from 'firebase-admin/app';
 import { credential } from 'firebase-admin';
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-  : undefined;
+const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
-if (!serviceAccount) {
-  console.warn(
-    'Firebase service account key not found. Firebase Admin SDK will not be initialized.'
-  );
+let adminApp;
+
+if (!getApps().length) {
+  if (serviceAccountString) {
+    try {
+      const serviceAccount = JSON.parse(serviceAccountString);
+      adminApp = initializeApp({
+        credential: credential.cert(serviceAccount),
+      });
+    } catch (e) {
+      console.error('Failed to parse Firebase service account key.', e);
+    }
+  } else {
+    console.warn(
+      'FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set. Firebase Admin SDK will not be initialized.'
+    );
+  }
+} else {
+  adminApp = getApp();
 }
 
-const app =
-  getApps().find((app) => app.name === 'admin') ||
-  (serviceAccount
-    ? initializeApp(
-        {
-          credential: credential.cert(serviceAccount),
-        },
-        'admin'
-      )
-    : undefined);
-
-export const adminApp = app;
+export { adminApp };
