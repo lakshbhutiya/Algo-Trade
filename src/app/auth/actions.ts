@@ -53,12 +53,7 @@ export async function login(prevState: any, formData: FormData) {
     // 2. Create a session cookie.
     // In this insecure demo, we're creating a session for any existing user.
     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-    // We create a custom token and then immediately create a session cookie from it.
-    // THIS IS A WORKAROUND because we can't create a session cookie directly from a UID.
-    // The proper flow requires an ID token from the client.
-    const customToken = await auth.createCustomToken(user.uid);
-    // This is an undocumented way to simulate the client-side token exchange for demo purposes.
-    const sessionCookie = await auth.createSessionCookie(customToken, { expiresIn });
+    const sessionCookie = await auth.createSessionCookie(user.uid, { expiresIn });
     
     cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
@@ -108,9 +103,7 @@ export async function signup(prevState: any, formData: FormData) {
 
         // 2. Create a session cookie for the new user
         const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-        // This is a workaround for server actions. A proper flow involves the client SDK.
-        const customToken = await auth.createCustomToken(userRecord.uid);
-        const sessionCookie = await auth.createSessionCookie(customToken, { expiresIn });
+        const sessionCookie = await auth.createSessionCookie(userRecord.uid, { expiresIn });
 
         // 3. Set the session cookie in the browser
         cookies().set("session", sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
