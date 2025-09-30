@@ -40,7 +40,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const CustomTooltipCursor = (props: any) => {
-  const { payload, brushBottom, ...rest } = props;
+  const { payload, brushBottom, payloadIndex, ...rest } = props;
   return <div {...rest} className="bg-muted/30 h-full w-full" />;
 };
 
