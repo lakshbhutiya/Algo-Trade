@@ -14,14 +14,16 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase/client";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<any>;
-  signup: (email: string, password: string) => Promise<any>;
+  signup: (email: string, password: string, firstName: string, lastName: string, dmatAccountNumber: string) => Promise<any>;
   logout: () => Promise<any>;
 }
 
@@ -43,8 +45,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signup = (email: string, password: string) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signup = async (email: string, password: string, firstName: string, lastName: string, dmatAccountNumber: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Add first and last name to the user's profile
+    await updateProfile(user, {
+        displayName: `${firstName} ${lastName}`
+    });
+
+    // Store additional user info in Firestore
+    await setDoc(doc(db, "users", user.uid), {
+        firstName,
+        lastName,
+        email,
+        dmatAccountNumber,
+    });
+    
+    // This will trigger the onAuthStateChanged listener and update the user state
+    setUser({ ...user }); 
+    return userCredential;
   };
 
   const logout = () => {

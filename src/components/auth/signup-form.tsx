@@ -12,6 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 export function SignupForm() {
+  const [firstName, setFirstName] = React.useState("");
+  const [lastName, setLastName] = React.useState("");
+  const [dmatAccountNumber, setDmatAccountNumber] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -21,9 +24,17 @@ export function SignupForm() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (dmatAccountNumber.length !== 14 || !/^\d+$/.test(dmatAccountNumber)) {
+        toast({
+            variant: "destructive",
+            title: "Invalid DMAT Number",
+            description: "DMAT Account Number must be exactly 14 digits.",
+        });
+        return;
+    }
     setLoading(true);
     try {
-      await signup(email, password);
+      await signup(email, password, firstName, lastName, dmatAccountNumber);
       toast({
         title: "Success",
         description: "Account created successfully. Welcome!",
@@ -42,6 +53,30 @@ export function SignupForm() {
 
   return (
     <form onSubmit={handleSignup} className="grid gap-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+            id="firstName"
+            placeholder="John"
+            required
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            disabled={loading}
+            />
+        </div>
+        <div className="grid gap-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+            id="lastName"
+            placeholder="Doe"
+            required
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            disabled={loading}
+            />
+        </div>
+      </div>
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -52,6 +87,18 @@ export function SignupForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="dmatAccountNumber">DMAT Account Number</Label>
+        <Input
+          id="dmatAccountNumber"
+          placeholder="14-digit number"
+          required
+          value={dmatAccountNumber}
+          onChange={(e) => setDmatAccountNumber(e.target.value)}
+          disabled={loading}
+          maxLength={14}
         />
       </div>
       <div className="grid gap-2">
