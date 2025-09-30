@@ -1,9 +1,11 @@
+
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { signup } from "@/app/auth/actions";
-import { useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { app } from "@/lib/firebase/config";
+import { createSessionCookie } from "@/app/auth/actions";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,34 +15,64 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2 } from "lucide-react";
 import { Logo } from "@/components/icons";
 
-const initialState = {
-  message: "",
-  error: false,
-};
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Create Account
-    </Button>
-  );
-}
 
 export function SignupForm() {
-  const [state, formAction] = useActionState(signup, initialState);
-  const { toast } = useToast();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [pending, setPending] = useState(false);
+    const { toast } = useToast();
+    const router = useRouter();
 
-  useEffect(() => {
-    if (state.message) {
-      toast({
-        variant: state.error ? "destructive" : "default",
-        title: state.error ? "Error" : "Success",
-        description: state.message,
-      });
-    }
-  }, [state, toast]);
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPending(true);
+
+        if (password.length < 6) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Password must be at least 6 characters long.",
+            });
+            setPending(false);
+            return;
+        }
+
+        try {
+            const auth = getAuth(app);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const idToken = await userCredential.user.getIdToken();
+
+            const result = await createSessionCookie(idToken);
+
+            if (result?.error) {
+                throw new Error(result.message);
+            }
+
+            toast({
+                title: "Success",
+                description: "Account created successfully.",
+            });
+
+            router.push("/dashboard");
+
+        } catch (error: any) {
+            let message = "Failed to create account.";
+            if (error.code === 'auth/email-already-in-use') {
+                message = "An account with this email already exists.";
+            } else {
+                console.error("Signup Error:", error);
+            }
+
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: message,
+            });
+        } finally {
+            setPending(false);
+        }
+    };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -55,7 +87,7 @@ export function SignupForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -64,13 +96,25 @@ export function SignupForm() {
                 name="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input type="password" id="password" name="password" required />
+              <Input 
+                type="password" 
+                id="password" 
+                name="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                />
             </div>
-            <SubmitButton />
+            <Button type="submit" disabled={pending} className="w-full">
+              {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Account
+            </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
