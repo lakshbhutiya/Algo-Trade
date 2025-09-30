@@ -1,10 +1,12 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getAdminApp } from '@/lib/firebase/server-config';
-import { getAuth } from 'firebase-admin/auth';
 
 export async function middleware(request: NextRequest) {
+  // Lazily import Node.js-specific modules inside the function
+  const { getAdminApp } = await import('@/lib/firebase/server-config');
+  const { getAuth } = await import('firebase-admin/auth');
+
   const sessionCookie = request.cookies.get('session')?.value;
   const { pathname } = request.nextUrl;
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
