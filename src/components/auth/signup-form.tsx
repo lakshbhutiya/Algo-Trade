@@ -24,11 +24,11 @@ export function SignupForm() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (dmatAccountNumber.length !== 14 || !/^\d+$/.test(dmatAccountNumber)) {
+    if (dmatAccountNumber.length !== 16 || !/^\d+$/.test(dmatAccountNumber)) {
         toast({
             variant: "destructive",
             title: "Invalid DMAT Number",
-            description: "DMAT Account Number must be exactly 14 digits.",
+            description: "DMAT Account Number must be exactly 16 digits.",
         });
         return;
     }
@@ -93,12 +93,12 @@ export function SignupForm() {
         <Label htmlFor="dmatAccountNumber">DMAT Account Number</Label>
         <Input
           id="dmatAccountNumber"
-          placeholder="14-digit number"
+          placeholder="16-digit number"
           required
           value={dmatAccountNumber}
           onChange={(e) => setDmatAccountNumber(e.target.value)}
           disabled={loading}
-          maxLength={14}
+          maxLength={16}
         />
       </div>
       <div className="grid gap-2">
