@@ -13,78 +13,58 @@ const firebaseAuthNotSetup = {
   error: true,
 };
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
 const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
 
 /**
- * Logs a user in.
- *
- * NOTE: This login function is for demonstration purposes only and is NOT SECURE.
- * The Firebase Admin SDK (server-side) cannot verify passwords directly.
- * In a production app, you should use the client-side SDK to sign the user in,
- * get an ID token, and send that token to the server to create a session cookie.
- *
- * This implementation finds a user by email and creates a session if they exist,
- * regardless of the password provided.
+ * Creates a session cookie for the given ID token.
+ * @param idToken The ID token of the user.
+ */
+export async function createSessionCookie(idToken: string) {
+    const adminApp = getAdminApp();
+    if (!adminApp) {
+        return firebaseAuthNotSetup;
+    }
+
+    try {
+        const decodedIdToken = await getAuth(adminApp).verifyIdToken(idToken);
+        const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+
+        // Create the session cookie. This will also verify the ID token in the process.
+        const sessionCookie = await getAuth(adminApp).createSessionCookie(idToken, { expiresIn });
+
+        cookies().set('session', sessionCookie, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: expiresIn,
+            path: '/',
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Session Cookie Error:', error);
+        return {
+            message: 'Failed to create session.',
+            error: true,
+        };
+    }
+}
+
+
+/**
+ * The login function is now primarily a client-side action.
+ * This server action is kept for structural consistency but the core logic
+ * has moved to the login form to use the client SDK.
  */
 export async function login(prevState: any, formData: FormData) {
-  const adminApp = getAdminApp();
-  if (!adminApp) {
-    return firebaseAuthNotSetup;
-  }
-
-  const validatedFields = loginSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  if (!validatedFields.success) {
+    // This is intentionally left blank.
+    // The client-side form now handles the login and calls createSessionCookie.
     return {
-      message: 'Invalid email or password format.',
-      error: true,
-    };
-  }
-
-  const { email } = validatedFields.data;
-  const auth = getAuth(adminApp);
-
-  try {
-    // 1. Get the user by email. This doesn't verify the password.
-    const user = await auth.getUserByEmail(email);
-
-    // 2. Create a session cookie.
-    // In this insecure demo, we're creating a session for any existing user.
-    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-    const sessionCookie = await auth.createSessionCookie(user.uid, {
-      expiresIn,
-    });
-
-    cookies().set('session', sessionCookie, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: expiresIn,
-      path: '/',
-    });
-  } catch (error: any) {
-    let message = 'Failed to log in.';
-    if (error.code === 'auth/user-not-found') {
-      message = 'Invalid email or password.';
-    } else {
-      console.error('Login Error:', error);
+        message: "This action is handled on the client.",
+        error: true,
     }
-    return {
-      message: message,
-      error: true,
-    };
-  }
-
-  redirect('/dashboard');
 }
 
 export async function signup(prevState: any, formData: FormData) {
