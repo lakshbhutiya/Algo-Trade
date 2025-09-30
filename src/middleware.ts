@@ -41,4 +41,5 @@ export const config = {
      */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
+  runtime: 'nodejs', // This is crucial for Firebase Admin SDK
 };
