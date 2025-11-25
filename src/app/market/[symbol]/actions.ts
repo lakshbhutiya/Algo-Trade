@@ -30,13 +30,50 @@ export async function runGetSuggestion(
   const { strategy, historicalData: historicalDataCSV, stockSymbol } = validatedFields.data;
 
   try {
-    const result = await getStrategySuggestion({
-        strategy,
-        historicalData: historicalDataCSV,
-        stockSymbol
+    // Parse CSV data back to HistoricalData[]
+    const lines = historicalDataCSV.trim().split('\n');
+    // Skip header row
+    const dataRows = lines.slice(1);
+
+    const history = dataRows.map(line => {
+      const [date, open, high, low, close, volume] = line.split(',');
+      return {
+        date,
+        open: parseFloat(open),
+        high: parseFloat(high),
+        low: parseFloat(low),
+        close: parseFloat(close),
+        volume: parseFloat(volume)
+      };
     });
-    
-    return { ...result, strategy };
+
+    // We need current price for analysis. 
+    // Since we don't have live price here easily without re-fetching, 
+    // we can use the last close price from history as a proxy for "currentPriceNSE".
+    // For BSE price, we'll pass undefined for now unless we fetch it.
+    const lastCandle = history[history.length - 1];
+    const currentPriceNSE = lastCandle ? lastCandle.close : 0;
+
+    const { analyzeStock } = await import("@/lib/analysis");
+    const result = analyzeStock(history, currentPriceNSE);
+
+    // Construct reasoning string based on signals
+    const reasoning = `
+**Trend**: ${result.signals.trend}
+**RSI**: ${result.signals.rsi} (${result.signals.rsi < 30 ? 'Oversold' : result.signals.rsi > 70 ? 'Overbought' : 'Neutral'})
+**Momentum (ROC)**: ${result.signals.momentum}
+${result.signals.arbitrageOpportunity ? `**Arbitrage**: Opportunity detected (Spread: ${result.signals.arbitrageSpread}%)` : ''}
+
+Composite Score: ${result.score.toFixed(2)}
+    `.trim();
+
+    return {
+      suggestion: result.recommendation,
+      reasoning,
+      strategy,
+      signals: result.signals,
+      score: result.score
+    };
   } catch (e: any) {
     console.error(e);
     return {

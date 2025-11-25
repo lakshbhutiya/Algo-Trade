@@ -9,15 +9,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { Stock } from "@/lib/market-data";
 import { cn } from "@/lib/utils";
 
-export function MarketView({ stocks }: { stocks: Stock[] }) {
+type MarketViewProps = {
+  stocks?: Stock[] | null;
+};
+
+export function MarketView({ stocks }: MarketViewProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const router = useRouter();
+  const safeStocks = stocks ?? [];
 
-  const filteredStocks = stocks.filter(
+  const filteredStocks = safeStocks.filter(
     (stock) =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stock.companyName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const showEmptyState = safeStocks.length === 0;
 
   return (
     <div className="container mx-auto max-w-7xl py-10">
@@ -33,72 +40,94 @@ export function MarketView({ stocks }: { stocks: Stock[] }) {
         />
       </div>
 
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: {
-              staggerChildren: 0.05,
+      {showEmptyState ? (
+        <div className="text-center py-20 text-muted-foreground border border-dashed rounded-lg">
+          <p className="text-lg font-medium">No realtime data available.</p>
+          <p className="mt-2 text-sm">
+            Please verify your Groww API key & secret are configured correctly.
+          </p>
+        </div>
+      ) : (
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05,
+              },
             },
-          },
-        }}
-      >
-        {filteredStocks.map((stock) => (
-          <motion.div
-            key={stock.symbol}
-            variants={{
-              hidden: { y: 20, opacity: 0 },
-              visible: { y: 0, opacity: 1 },
-            }}
-            whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
-            className="cursor-pointer"
-            onClick={() => router.push(`/market/${stock.symbol}`)}
-          >
-            <Card className="h-full hover:border-primary transition-colors duration-300 shadow-sm hover:shadow-primary/20 hover:shadow-lg">
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div>
-                    <div className="flex justify-between items-start">
+          }}
+        >
+          {filteredStocks.map((stock) => {
+            const changeValue = stock.dayChange?.value ?? null;
+            const changePercent = stock.dayChange?.percentage ?? null;
+            const isPositive = (changeValue ?? 0) >= 0;
+            const currentPriceLabel =
+              typeof stock.currentPrice === "number"
+                ? `₹${stock.currentPrice.toFixed(2)}`
+                : "—";
+
+            return (
+              <motion.div
+                key={stock.symbol}
+                variants={{
+                  hidden: { y: 20, opacity: 0 },
+                  visible: { y: 0, opacity: 1 },
+                }}
+                whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
+                className="cursor-pointer"
+                onClick={() => router.push(`/market/${stock.symbol}`)}
+              >
+                <Card className="h-full hover:border-primary transition-colors duration-300 shadow-sm hover:shadow-primary/20 hover:shadow-lg">
+                  <CardContent className="p-4 flex flex-col justify-between h-full">
                     <div>
-                        <h3 className="font-bold text-lg">{stock.symbol}</h3>
-                        <p className="text-sm text-muted-foreground truncate max-w-[150px]">{stock.companyName}</p>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-lg">{stock.symbol}</h3>
+                          <p className="text-sm text-muted-foreground truncate max-w-[150px]">
+                            {stock.companyName}
+                          </p>
+                        </div>
+                        <div
+                          className={cn(
+                            "flex items-center text-xs font-semibold px-2 py-1 rounded-full",
+                            isPositive
+                              ? "bg-green-500/10 text-green-500"
+                              : "bg-red-500/10 text-red-500"
+                          )}
+                        >
+                          {isPositive ? (
+                            <ArrowUp className="h-3 w-3 mr-1" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3 mr-1" />
+                          )}
+                          {changePercent !== null ? `${changePercent.toFixed(2)}%` : "—"}
+                        </div>
+                      </div>
                     </div>
-                    <div
+                    <div className="mt-4 text-right">
+                      <p className="text-2xl font-bold">{currentPriceLabel}</p>
+                      <p
                         className={cn(
-                        "flex items-center text-xs font-semibold px-2 py-1 rounded-full",
-                        (stock.dayChange?.value ?? 0) >= 0 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
+                          "text-sm font-medium",
+                          isPositive ? "text-green-500" : "text-red-500"
                         )}
-                    >
-                        {(stock.dayChange?.value ?? 0) >= 0 ? (
-                        <ArrowUp className="h-3 w-3 mr-1" />
-                        ) : (
-                        <ArrowDown className="h-3 w-3 mr-1" />
-                        )}
-                        {stock.dayChange?.percentage.toFixed(2)}%
+                      >
+                        {changeValue === null ? "—" : `${isPositive ? "+" : ""}₹${changeValue.toFixed(2)}`}
+                      </p>
                     </div>
-                    </div>
-                </div>
-                <div className="mt-4 text-right">
-                  <p className="text-2xl font-bold">₹{stock.currentPrice.toFixed(2)}</p>
-                  <p
-                    className={cn(
-                      "text-sm font-medium",
-                      (stock.dayChange?.value ?? 0) >= 0 ? "text-green-500" : "text-red-500"
-                    )}
-                  >
-                    {(stock.dayChange?.value ?? 0) >= 0 ? "+" : ""}
-                    {stock.dayChange?.value.toFixed(2)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-      {filteredStocks.length === 0 && (
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      )}
+      {!showEmptyState && filteredStocks.length === 0 && (
         <div className="text-center py-20 text-muted-foreground">
           <p className="text-lg">No stocks found for "{searchTerm}".</p>
         </div>

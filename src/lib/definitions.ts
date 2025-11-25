@@ -13,11 +13,15 @@ export interface BacktestFormState {
 }
 
 // From src/app/market/[symbol]/actions.ts
+import type { AnalysisResult } from "@/lib/analysis";
+
 export interface SuggestionFormState {
-  suggestion?: 'Buy' | 'Sell' | 'Hold';
+  suggestion?: 'STRONG BUY' | 'BUY' | 'HOLD' | 'SELL' | 'STRONG SELL';
   reasoning?: string;
   error?: string;
   strategy?: string;
+  signals?: AnalysisResult["signals"];
+  score?: number;
 }
 
 // From src/ai/flows/strategy-backtesting.ts
@@ -79,7 +83,7 @@ export const StrategySuggestionInputSchema = z.object({
     .describe(
       'Historical market data for a stock in CSV format, including dates, open, high, low, close, and volume.'
     ),
-    stockSymbol: z.string().describe('The stock symbol (e.g., RELIANCE).'),
+  stockSymbol: z.string().describe('The stock symbol (e.g., RELIANCE).'),
 });
 export type StrategySuggestionInput = z.infer<typeof StrategySuggestionInputSchema>;
 

@@ -1,6 +1,13 @@
 import { MarketView } from "@/components/market/market-view";
-import { stockData } from "@/lib/market-data";
+import { fetchMarketData, ensureLiveFeed } from "@/lib/groww";
 
-export default function MarketPage() {
-  return <MarketView stocks={stockData} />;
+export const dynamic = "force-dynamic";
+
+export default async function MarketPage() {
+  const stocks = await fetchMarketData();
+  void ensureLiveFeed().catch((error) =>
+    console.error("[Groww] failed to start live feed", error)
+  );
+
+  return <MarketView stocks={stocks} />;
 }

@@ -38,8 +38,13 @@ const CustomTooltipCursor = (props: any) => {
 
 export function StockDetail({ stock }: StockDetailProps) {
     const reversedHistoricalData = stock.historicalData ? [...stock.historicalData].reverse() : [];
+    const latestVolume = stock.historicalData?.[stock.historicalData.length - 1]?.volume ?? null;
     
-    const isPositiveChange = (stock.dayChange?.value ?? 0) >= 0;
+    const changeValue = stock.dayChange?.value ?? null;
+    const changePercent = stock.dayChange?.percentage ?? null;
+    const isPositiveChange = (changeValue ?? 0) >= 0;
+    const priceLabel =
+      typeof stock.currentPrice === "number" ? `₹${stock.currentPrice.toFixed(2)}` : "—";
 
   return (
     <div className="container mx-auto max-w-7xl py-10 space-y-6">
@@ -48,14 +53,19 @@ export function StockDetail({ stock }: StockDetailProps) {
             <h1 className="text-4xl font-bold">{stock.companyName}</h1>
             <div className="flex items-center gap-4 mt-2">
                 <Badge variant="secondary" className="text-lg">{stock.symbol}</Badge>
-                <p className="text-muted-foreground text-lg">{stock.sector}</p>
+                <p className="text-muted-foreground text-lg">
+                  {stock.sector ?? "—"}
+                </p>
             </div>
         </div>
         <div className="text-right">
-            <p className="text-4xl font-bold">₹{stock.currentPrice.toFixed(2)}</p>
+            <p className="text-4xl font-bold">{priceLabel}</p>
             <div className={cn("flex items-center justify-end text-lg", isPositiveChange ? "text-[hsl(var(--chart-2))]" : "text-[hsl(var(--destructive))]")}>
                 {isPositiveChange ? <ArrowUp className="h-5 w-5"/> : <ArrowDown className="h-5 w-5"/>}
-                <span className="font-semibold ml-1">{stock.dayChange?.value.toFixed(2)} ({stock.dayChange?.percentage.toFixed(2)}%)</span>
+                <span className="font-semibold ml-1">
+                  {changeValue === null ? "—" : `${isPositiveChange ? "+" : ""}${changeValue.toFixed(2)}`}
+                  {changePercent === null ? "" : ` (${changePercent.toFixed(2)}%)`}
+                </span>
             </div>
         </div>
       </div>
@@ -66,10 +76,11 @@ export function StockDetail({ stock }: StockDetailProps) {
         </CardHeader>
         <CardContent>
           <div className="h-[400px]">
-            <ChartContainer config={chartConfig} className="w-full h-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={reversedHistoricalData}
+            {reversedHistoricalData.length > 0 ? (
+              <ChartContainer config={chartConfig} className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={reversedHistoricalData}
                   margin={{
                     top: 5,
                     right: 10,
@@ -142,14 +153,31 @@ export function StockDetail({ stock }: StockDetailProps) {
                       style: { fill: "hsl(var(--primary))", stroke: "hsl(var(--primary))" },
                     }}
                   />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                No historical data available.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <StrategySuggestions stock={stock} />
+      {stock.historicalData?.length ? (
+        <StrategySuggestions stock={stock} />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Strategy Suggestion</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Historical candles are required to generate a suggestion. Please retry once
+            realtime data is available.
+          </CardContent>
+        </Card>
+      )}
       
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
           <Card>
@@ -157,7 +185,11 @@ export function StockDetail({ stock }: StockDetailProps) {
                   <CardTitle className="text-sm font-medium text-muted-foreground">Market Cap</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-xl font-bold">₹{(stock.marketCap / 1000000).toFixed(2)}T</p>
+                  <p className="text-xl font-bold">
+                    {typeof stock.marketCap === "number"
+                      ? `₹${(stock.marketCap / 1_000_000_000_000).toFixed(2)}T`
+                      : "—"}
+                  </p>
               </CardContent>
           </Card>
           <Card>
@@ -165,7 +197,9 @@ export function StockDetail({ stock }: StockDetailProps) {
                   <CardTitle className="text-sm font-medium text-muted-foreground">P/E Ratio</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-xl font-bold">{stock.peRatio.toFixed(2)}</p>
+                  <p className="text-xl font-bold">
+                    {typeof stock.peRatio === "number" ? stock.peRatio.toFixed(2) : "—"}
+                  </p>
               </CardContent>
           </Card>
           <Card>
@@ -173,7 +207,11 @@ export function StockDetail({ stock }: StockDetailProps) {
                   <CardTitle className="text-sm font-medium text-muted-foreground">Div. Yield</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-xl font-bold">{stock.dividendYield.toFixed(2)}%</p>
+                  <p className="text-xl font-bold">
+                    {typeof stock.dividendYield === "number"
+                      ? `${stock.dividendYield.toFixed(2)}%`
+                      : "—"}
+                  </p>
               </CardContent>
           </Card>
           <Card>
@@ -181,7 +219,11 @@ export function StockDetail({ stock }: StockDetailProps) {
                   <CardTitle className="text-sm font-medium text-muted-foreground">52-Wk High</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-xl font-bold">₹{stock["52WeekHigh"].toFixed(2)}</p>
+                  <p className="text-xl font-bold">
+                    {typeof stock.week52High === "number"
+                      ? `₹${stock.week52High.toFixed(2)}`
+                      : "—"}
+                  </p>
               </CardContent>
           </Card>
           <Card>
@@ -189,7 +231,11 @@ export function StockDetail({ stock }: StockDetailProps) {
                   <CardTitle className="text-sm font-medium text-muted-foreground">52-Wk Low</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-xl font-bold">₹{stock["52WeekLow"].toFixed(2)}</p>
+                  <p className="text-xl font-bold">
+                    {typeof stock.week52Low === "number"
+                      ? `₹${stock.week52Low.toFixed(2)}`
+                      : "—"}
+                  </p>
               </CardContent>
           </Card>
           <Card>
@@ -197,7 +243,11 @@ export function StockDetail({ stock }: StockDetailProps) {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Volume</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-xl font-bold">{((stock.historicalData?.[0].volume ?? 0) / 1_000_000).toFixed(2)}M</p>
+                <p className="text-xl font-bold">
+                  {typeof latestVolume === "number"
+                    ? `${(latestVolume / 1_000_000).toFixed(2)}M`
+                    : "—"}
+                </p>
               </CardContent>
           </Card>
       </div>
