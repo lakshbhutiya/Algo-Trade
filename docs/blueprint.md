@@ -1,4 +1,4 @@
-# **App Name**: AlgoTrade AI
+# **App Name**: AlgoTrade
 
 ## Core Features:
 

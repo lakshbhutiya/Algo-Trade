@@ -152,9 +152,9 @@ export function StrategySuggestions({ stock }: { stock: Stock }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>AI Strategy Suggestion</CardTitle>
+        <CardTitle>Strategy Suggestion</CardTitle>
         <CardDescription>
-          Get an AI-powered buy, sell, or hold suggestion based on a trading strategy.
+          Get a buy, sell, or hold suggestion based on a trading strategy.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -5,8 +5,8 @@ import { AuthProvider } from '@/hooks/use-auth';
 import AuthStateChangeProvider from '@/components/auth/auth-state-change-provider';
 
 export const metadata: Metadata = {
-  title: 'AlgoTrade AI',
-  description: 'AI-powered algorithmic trading platform',
+  title: 'AlgoTrade',
+  description: 'Inteligent algorithmic trading platform',
 };
 
 export default function RootLayout({

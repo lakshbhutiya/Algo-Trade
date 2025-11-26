@@ -41,7 +41,7 @@ export function SidebarNav() {
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2">
             <Logo className="size-8 text-primary" />
-            <span className="text-lg font-semibold text-foreground whitespace-nowrap group-data-[collapsible=icon]:hidden">AlgoTrade AI</span>
+            <span className="text-lg font-semibold text-foreground whitespace-nowrap group-data-[collapsible=icon]:hidden">AlgoTrade</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
